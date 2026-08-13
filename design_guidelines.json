@@ -1,0 +1,215 @@
+{
+  "app_name": "Resonance",
+  "personality": "6 Glass / Luxe",
+  "personality_one_liner": "Cinematic, rich, and deeply immersive—putting the album art and music front and center through frosted glass, moody dark negative space, and amber accents.",
+  "color": {
+    "light": {
+      "surface": "#F7F7F9",
+      "onSurface": "#111114",
+      "surfaceSecondary": "#EAEAEF",
+      "onSurfaceSecondary": "#333338",
+      "surfaceTertiary": "#DFDFE6",
+      "onSurfaceTertiary": "#44444C",
+      "surfaceInverse": "#0D0D11",
+      "onSurfaceInverse": "#F7F7F9",
+      "brand": "#EAA33A",
+      "brandPrimary": "#D28E25",
+      "onBrandPrimary": "#FFFFFF",
+      "brandSecondary": "#F4C57C",
+      "onBrandSecondary": "#111114",
+      "brandTertiary": "#F9E0B6",
+      "onBrandTertiary": "#111114",
+      "success": "#4A7A59",
+      "onSuccess": "#FFFFFF",
+      "warning": "#B58231",
+      "onWarning": "#FFFFFF",
+      "error": "#9E3D35",
+      "onError": "#FFFFFF",
+      "border": "#D4D4DB",
+      "borderStrong": "#BDBDC5",
+      "divider": "#E1E1E7"
+    },
+    "dark": {
+      "surface": "#0D0D11",
+      "onSurface": "#F7F7F9",
+      "surfaceSecondary": "#1A1A22",
+      "onSurfaceSecondary": "#D8D8DF",
+      "surfaceTertiary": "#252530",
+      "onSurfaceTertiary": "#BDBDC5",
+      "surfaceInverse": "#F7F7F9",
+      "onSurfaceInverse": "#111114",
+      "brand": "#EAA33A",
+      "brandPrimary": "#EAA33A",
+      "onBrandPrimary": "#111114",
+      "brandSecondary": "#C98622",
+      "onBrandSecondary": "#FFFFFF",
+      "brandTertiary": "#4A3512",
+      "onBrandTertiary": "#F9E0B6",
+      "success": "#4A7A59",
+      "onSuccess": "#E3F0E8",
+      "warning": "#B58231",
+      "onWarning": "#FDECC8",
+      "error": "#9E3D35",
+      "onError": "#F7D6D3",
+      "border": "#2A2A33",
+      "borderStrong": "#3E3E4C",
+      "divider": "#1F1F27"
+    }
+  },
+  "typography": {
+    "displayFontFamily": "Fraunces",
+    "textFontFamily": "Satoshi",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Generous spacing. Cinematic layouts require breathing room. Cards and lists must feel collected, not cramped.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "0",
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": true,
+    "do's": [
+      "Use heavy blur overlaid with >=75% tint opacity of `surfaceSecondary` for the Now Playing full-screen backdrop.",
+      "Apply frosted glass to the floating mini-player over scrolling home/library content.",
+      "Use glass on the bottom tab bar when scrolling content flows underneath.",
+      "Apply glassmorphic headers when lists scroll beneath them."
+    ],
+    "dont's": [
+      "Never put thin serif typography on raw blur without a tinted background layer.",
+      "Do not use glass on normal list rows or standard content cards.",
+      "Do not stack more than two glass surfaces per screen."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Home",
+      "purpose": "A premium personalized dashboard surfacing recent music, top played, and quick library shortcuts.",
+      "states": {
+        "loading": "Skeleton grids with shimmering surfaceSecondary blocks.",
+        "empty": "N/A for Home, empty sections just don't render.",
+        "error": "Centered subtle error text with a retry icon."
+      },
+      "layout": "Scrollable vertical layout. Large 'Recently Played' carousel at the top (full-bleed cards). Below that, quick-access chips in a horizontal scroll (Songs, Artists, Albums). Then 'Most Played' and 'Recently Added'. Mini-player anchored above the bottom tab bar."
+    },
+    {
+      "name": "Library",
+      "purpose": "The core repository for all local files, organized by category.",
+      "states": {
+        "loading": "Skeleton list rows.",
+        "empty": "Illustration of a vinyl record with 'No music found. Pull to rescan or check local files.' and a primary CTA 'Scan Folder'.",
+        "error": "Error scanning directory message with retry button."
+      },
+      "layout": "Sticky glass header with segmented sub-navigation. Standard list rows for Songs with artwork, title, artist. Grid layout for Albums. Sectioned by alphabet."
+    },
+    {
+      "name": "Now Playing (Full Screen)",
+      "purpose": "The immersive playback center, utilizing artwork to create a cinematic mood.",
+      "states": {
+        "loading": "Spinner over default dark gradient.",
+        "empty": "Should not be reachable without a track.",
+        "error": "Standard error toast."
+      },
+      "layout": "Artwork-derived blurred background (using heavy blur + tint scrim). Huge square album art taking up the top 50%. Large title and artist below. Seekable progress bar. Playback controls (previous, play/pause, next, shuffle, repeat) anchored near the bottom."
+    },
+    {
+      "name": "Playlists",
+      "purpose": "User's custom collections.",
+      "states": {
+        "loading": "Skeleton grid.",
+        "empty": "Illustration of an empty record sleeve with 'Create your first playlist' CTA.",
+        "error": "Failed to load playlists."
+      },
+      "layout": "2-column grid. Playlist cards feature custom cover images and gradient overlays. Touching a playlist opens a detail screen with a large banner header."
+    },
+    {
+      "name": "Search",
+      "purpose": "Fast indexing and retrieval of local tracks.",
+      "states": {
+        "loading": "Immediate inline spinner.",
+        "empty": "Recent search history chips. If no results, 'No matches found'.",
+        "error": "Search index error."
+      },
+      "layout": "Large search input field at the top. Results segmented by type (Songs, Albums, Artists). List rows for results."
+    },
+    {
+      "name": "Settings",
+      "purpose": "App configuration and local library management.",
+      "states": {
+        "loading": "None.",
+        "empty": "None.",
+        "error": "None."
+      },
+      "layout": "Standard vertical list with toggle switches and right chevrons. Sections for Appearance, Playback, and Library Management."
+    }
+  ],
+  "images": {
+    "now_playing_bg_fallback": {
+      "url": "https://images.unsplash.com/photo-1635776062360-af423602aff3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwxfHxkYXJrJTIwZ3JhZGllbnQlMjB0ZXh0dXJlJTIwbWluaW1hbHxlbnwwfHx8fDE3ODQ4MjYyMDl8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Abstract minimal dark gradient background for Now Playing screen"
+    },
+    "default_album_cover": {
+      "url": "https://images.unsplash.com/photo-1687392946855-8e35efa25ad7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHwyfHwlMjJhYnN0cmFjdCUyMHdhcm0lMjBhbWJlciUyMGRhcmslMjBtb29kJTIwYmFja2dyb3VuZCUyMnxlbnwwfHx8fDE3ODY2MDM2NDV8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Default album cover showing warm amber abstract shapes"
+    },
+    "artist_placeholder": {
+      "url": "https://images.unsplash.com/photo-1499364615650-ec38552f4f34?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTF8MHwxfHNlYXJjaHwyfHxsaXZlJTIwbXVzaWMlMjBhcnRpc3QlMjBwZXJmb3JtYW5jZXxlbnwwfHx8fDE3ODIzMzkyNjF8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Live music artist performance on stage"
+    },
+    "playlist_cover_placeholder": {
+      "url": "https://images.unsplash.com/photo-1581518570052-e08e4d85cd10?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHwlMjJ2aW55bCUyMHJlY29yZCUyMGFsYnVtJTIwY292ZXIlMjBkYXJrJTIwbW9vZCUyMnxlbnwwfHx8fDE3ODY2MDM2NTB8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Moody dark vinyl record style cover"
+    }
+  },
+  "haptics": {
+    "play_pause": "impactMedium",
+    "next_prev_track": "impactLight",
+    "add_to_playlist": "notificationSuccess",
+    "favorite_toggle": "impactMedium",
+    "tab_switch": "selection",
+    "seek_bar_commit": "impactLight",
+    "queue_reorder": "selection"
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the '6 Glass / Luxe' personality. The UI must feel expensive and cinematic.",
+    "Implement both Light and Dark themes accurately using the provided color tokens, with system toggle support.",
+    "The Now Playing screen is the focal point. Use `expo-blur` heavily, overlaid with a tinted layer of `surface` (75%+ opacity) so controls remain readable.",
+    "Do NOT use any shade of blue, navy, purple, or violet. The accent color is Amber/Antique Gold (`#EAA33A`).",
+    "Use Fraunces (Serif) strictly for large, expressive text (Album titles on detail screens, Artist names, Playlist headers). Use Satoshi (Sans-Serif) for all structural UI (lists, tabs, metadata, settings) to ensure readability.",
+    "Use `Phosphor` icons consistently. No ad-hoc SVGs or emojis in the UI.",
+    "Ensure all lists have generous touch targets (minimum 56pt) and list items are separated by subtle dividers or margin.",
+    "Mini-player MUST float above the bottom tab bar and feature a frosted glass background.",
+    "Apply gradient scrims (transparent to `surfaceInverse`) at the bottom of all image-heavy cards and album headers to guarantee text contrast."
+  ]
+}
