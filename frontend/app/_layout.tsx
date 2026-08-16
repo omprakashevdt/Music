@@ -3,7 +3,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { LogBox } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -39,20 +39,30 @@ function Navigator() {
 }
 
 export default function RootLayout() {
-  const [iconsLoaded, iconError] = useIconFonts();
-  const [fontsLoaded] = useFonts({
+  // Prewarm icon fonts (non-blocking) — our UI uses SVG icons, so we never
+  // gate rendering on this.
+  useIconFonts();
+  const [fontsLoaded, fontError] = useFonts({
     Fraunces: require("../assets/fonts/Fraunces.ttf"),
     Manrope: require("../assets/fonts/Manrope.ttf"),
   });
+
+  // Fallback so the app never gets stuck on the splash if font loading stalls
+  // on a real device.
+  const [timedOut, setTimedOut] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setTimedOut(true), 2500);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     getDb();
   }, []);
 
-  const ready = (iconsLoaded || iconError) && fontsLoaded;
+  const ready = fontsLoaded || !!fontError || timedOut;
 
   useEffect(() => {
-    if (ready) SplashScreen.hideAsync();
+    if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
 
   if (!ready) return null;
