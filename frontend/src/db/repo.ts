@@ -399,6 +399,11 @@ export async function restoreDemoLibrary(): Promise<void> {
   schedulePersist();
 }
 
+export async function getExistingTrackIds(): Promise<Set<string>> {
+  const db = await loadDB();
+  return new Set(db.tracks.map((t) => t.id));
+}
+
 export async function getLibraryStats(): Promise<{ tracks: number; albums: number; artists: number }> {
   const db = await loadDB();
   return {
