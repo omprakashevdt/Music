@@ -8,12 +8,15 @@ import {
   ShieldCheck,
   MusicNotes,
   Moon,
+  DownloadSimple,
+  Gear,
 } from "phosphor-react-native";
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Switch, View } from "react-native";
+import { ActivityIndicator, Linking, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/src/components/AppText";
+import { ProgressBar } from "@/src/components/ProgressBar";
 import { Segmented } from "@/src/components/Segmented";
 import { CONTENT_BOTTOM } from "@/src/constants";
 import {
@@ -45,10 +48,15 @@ export default function SettingsScreen() {
   const setShuffle = useAudioStore((s) => s.setShuffle);
   const repeat = useAudioStore((s) => s.repeat);
   const cycleRepeat = useAudioStore((s) => s.cycleRepeat);
-  const scanning = useScannerStore((s) => s.scanning);
+  const scanMode = useScannerStore((s) => s.mode);
   const scanRun = useScannerStore((s) => s.run);
+  const importFiles = useScannerStore((s) => s.importFiles);
   const processed = useScannerStore((s) => s.processed);
+  const added = useScannerStore((s) => s.added);
+  const total = useScannerStore((s) => s.total);
   const scanError = useScannerStore((s) => s.error);
+  const blocked = useScannerStore((s) => s.blocked);
+  const busy = scanMode !== "idle";
 
   const { data: stats } = useRepo(() => getLibraryStats(), { tracks: 0, albums: 0, artists: 0 });
 
@@ -110,24 +118,74 @@ export default function SettingsScreen() {
       <Section title="LIBRARY">
         <Pressable
           testID="scan-music"
-          onPress={() => !scanning && scanRun()}
+          onPress={() => !busy && scanRun()}
           style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
         >
           <View style={styles.rowLeft}>
             <ArrowClockwise size={20} color={colors.brand} />
-            <View>
-              <AppText variant="subtitle">Scan music</AppText>
-              <AppText variant="caption" muted>
-                {scanning
-                  ? `Scanning… ${processed} files`
+            <View style={{ flex: 1 }}>
+              <AppText variant="subtitle">Scan device music</AppText>
+              <AppText variant="caption" muted numberOfLines={2}>
+                {scanMode === "scanning"
+                  ? `Scanning… ${processed} checked, ${added} new`
                   : scanError
                     ? scanError
-                    : "Import audio from your device"}
+                    : "Find MP3/M4A/FLAC files already on your device"}
               </AppText>
             </View>
           </View>
-          {scanning ? <ActivityIndicator color={colors.brand} /> : <CaretRight size={18} color={colors.onSurfaceTertiary} />}
+          {scanMode === "scanning" ? (
+            <ActivityIndicator color={colors.brand} />
+          ) : (
+            <CaretRight size={18} color={colors.onSurfaceTertiary} />
+          )}
         </Pressable>
+
+        {blocked && (
+          <Pressable
+            testID="open-settings"
+            onPress={() => Linking.openSettings()}
+            style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+          >
+            <View style={styles.rowLeft}>
+              <Gear size={20} color={colors.brand} />
+              <AppText variant="subtitle" color={colors.brand}>Open Settings to allow music access</AppText>
+            </View>
+            <CaretRight size={18} color={colors.onSurfaceTertiary} />
+          </Pressable>
+        )}
+
+        <Pressable
+          testID="import-music"
+          onPress={() => !busy && importFiles()}
+          style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <View style={styles.rowLeft}>
+            <DownloadSimple size={20} color={colors.brand} />
+            <View style={{ flex: 1 }}>
+              <AppText variant="subtitle">Import songs manually</AppText>
+              <AppText variant="caption" muted numberOfLines={2}>
+                {scanMode === "importing"
+                  ? `Importing ${processed}/${total}…`
+                  : "Pick audio files from your phone or SD card"}
+              </AppText>
+            </View>
+          </View>
+          {scanMode === "importing" ? (
+            <ActivityIndicator color={colors.brand} />
+          ) : (
+            <CaretRight size={18} color={colors.onSurfaceTertiary} />
+          )}
+        </Pressable>
+
+        {busy && (
+          <View style={{ paddingHorizontal: 16, paddingBottom: 14 }}>
+            <ProgressBar
+              indeterminate={scanMode === "scanning" || total === 0}
+              progress={total > 0 ? processed / total : 0}
+            />
+          </View>
+        )}
 
         <View style={styles.row}>
           <View style={styles.rowLeft}>

@@ -1,0 +1,30 @@
+{
+  "summary": "Frontend-only verification of the scan-hang bug fix + new manual import row + regressions in Resonance (Expo web preview @ 390x844). CORE BUG FIXED: Tapping 'Scan device music' (scan-music) no longer hangs. On web MediaLibrary.getPermissionsAsync resolves as denied (granted=false), the try/finally in scanner.run() always resets mode to 'idle', so within <1s the row shows subtitle 'Music access was denied. Tap Scan again to allow it.', spinner (ActivityIndicator) is gone and CaretRight is back. Row remains tappable — verified re-tap keeps producing the same graceful denied state (never stuck). Because canAskAgain=true on web, the blocked branch is not entered, so the 'open-settings' row is not shown — this matches the code path (correct behavior). NEW IMPORT ROW: 'Import songs manually' (import-music) is present in the LIBRARY section with the exact subtitle 'Pick audio files from your phone or SD card'. Tapping it triggers the system file input; pressing Escape (cancel) returns cleanly to idle (mode->'idle') and the row is immediately re-tappable — no crash, no hang. PROGRESS BAR: On web the busy window is <100ms so the ProgressBar was not observed painted, but the component is imported and gated on busy=(scanMode!=='idle') with indeterminate=true during scanning — code is correctly wired. REGRESSIONS PASSED: theme-light/theme-dark/theme-system all toggle theme; restore-demo restores 12 songs · 4 albums; reset-library opens confirm-dialog, confirm-ok resets to '0 songs · 0 albums'; tapping a Recently-played card starts playback (Now Playing screen shows 'Neon Coast' with progress 0:01/7:00 and mini-player testID present); all 5 tab routes (/, /library, /playlists, /search, /settings) load without red-screen. Deprecated packages detected: none new; pre-existing style-prop deprecation warnings ('textShadow*', 'shadow*', 'pointerEvents') already reported in iteration_2.json.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "Legacy style-prop warnings (pre-existing, non-blocking)", "issue": "Console still emits 'textShadow*/shadow*/props.pointerEvents are deprecated' warnings globally (already tracked in iteration_2.json). No new deprecated packages introduced by this fix."}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_3.json"],
+  "action_items": [
+    "None blocking. Optional polish: on web where DocumentPicker.getDocumentAsync returns {canceled:true} instantly, the busy window is imperceptible — consider a min-visible delay on the ProgressBar (e.g., keep it up for ~250ms) so users on slow devices get visual feedback. Not required."
+  ],
+  "critical_code_review_comments": [
+    "scanner.ts run() and importFiles() both correctly wrap all async work (including MediaLibrary.getPermissionsAsync / requestPermissionsAsync and DocumentPicker.getDocumentAsync) inside try/finally that guarantees set({ mode: 'idle' }) — this is the root-cause fix and it is implemented correctly.",
+    "The early return guard `if (get().mode !== 'idle') return;` is fine because the finally block always restores idle, so it can no longer produce a permanent lockout.",
+    "settings.tsx correctly uses `busy = scanMode !== 'idle'` to guard both Pressables and to render the ProgressBar; testIDs 'scan-music', 'import-music', 'open-settings', 'restore-demo', 'reset-library', 'theme-light/dark/system' are all present and wired.",
+    "Small nit (non-blocking): the 'open-settings' row only renders when blocked=true (canAskAgain=false). On Expo web MediaLibrary reports canAskAgain=true, so this branch is unreachable in the web preview — expected, verified.",
+    "Small nit: importFiles() sets `blocked: false` on entry but never sets `blocked: true`, so the field is only ever mutated by run(). Fine, but keep in mind if you ever add an 'open settings' hint for file access."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend only)", "frontend": "100%"},
+  "seed_data_creation": "During regression I invoked reset-library then restore-demo; app is back to the standard demo library (12 songs · 4 albums).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "EXPO_PUBLIC_BACKEND_URL = https://app-builder-12566.preview.emergentagent.com. Direct URL routing works for all 5 tabs. On web MediaLibrary permissions always resolve to denied+canAskAgain=true, so the 'open-settings' block-branch cannot be exercised without a real device. The DocumentPicker on web renders a hidden <input type=file>; pressing Escape cancels it and produces res.canceled=true, exercising the importFiles early-return + finally.",
+  "rca_of_issue": "Original bug: MediaLibrary.requestPermissionsAsync was called BEFORE the try block, so a rejected/hung permission call left mode='scanning' forever and the `if (mode !== 'idle') return` guard blocked re-taps. Fix: the entire permission-request + scan loop are now inside try/finally in scanner.run(); the finally always resets mode to 'idle'. Verified end-to-end on web: after tap, scan-music returns to idle within ~500ms with a graceful subtitle, and is immediately re-tappable. Same pattern applied to importFiles() for the new manual-import flow — also verified idle-recovery on cancel."
+}
