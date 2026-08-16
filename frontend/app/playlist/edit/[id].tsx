@@ -30,7 +30,20 @@ import { bumpLibrary } from "@/src/store/libraryStore";
 import { toast } from "@/src/store/toastStore";
 import { useTheme } from "@/src/theme/ThemeProvider";
 
-const THEME_COLORS = ["#EAA33A", "#9E3D35", "#4A7A59", "#B58231", "#8A5A22", "#227A6E"];
+const THEME_COLORS = [
+  "#EAA33A", "#F4C57C", "#D28E25", "#8A5A22",
+  "#9E3D35", "#C15B4E", "#E07A5F", "#B58231",
+  "#4A7A59", "#227A6E", "#3D6B8E", "#6A4C8C",
+];
+
+function normalizeHex(input: string): string | null {
+  let v = input.trim().replace(/^#/, "");
+  if (/^[0-9a-fA-F]{3}$/.test(v)) {
+    v = v.split("").map((c) => c + c).join("");
+  }
+  if (/^[0-9a-fA-F]{6}$/.test(v)) return `#${v.toUpperCase()}`;
+  return null;
+}
 
 export default function PlaylistEdit() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -44,6 +57,7 @@ export default function PlaylistEdit() {
   const [description, setDescription] = useState("");
   const [cover, setCover] = useState<string | null>(null);
   const [themeColor, setThemeColor] = useState(THEME_COLORS[0]);
+  const [hexInput, setHexInput] = useState("");
 
   useEffect(() => {
     if (!isNew) {
@@ -146,7 +160,10 @@ export default function PlaylistEdit() {
           style={[styles.input, { backgroundColor: colors.surfaceSecondary, color: colors.onSurface, borderColor: colors.border }]}
         />
 
-        <AppText variant="label" muted style={{ marginTop: spacing.lg, marginBottom: 10 }}>THEME COLOR</AppText>
+        <View style={styles.themeHead}>
+          <AppText variant="label" muted>THEME COLOR</AppText>
+          <View style={[styles.currentDot, { backgroundColor: themeColor, borderColor: colors.border }]} />
+        </View>
         <View style={styles.colors}>
           {THEME_COLORS.map((c) => (
             <Pressable
@@ -159,6 +176,25 @@ export default function PlaylistEdit() {
               ]}
             />
           ))}
+        </View>
+
+        <View style={[styles.hexRow, { borderColor: colors.border }]}>
+          <AppText variant="subtitle" muted>#</AppText>
+          <TextInput
+            testID="pl-hex-input"
+            value={hexInput}
+            onChangeText={(v) => {
+              setHexInput(v);
+              const hex = normalizeHex(v);
+              if (hex) setThemeColor(hex);
+            }}
+            autoCapitalize="characters"
+            maxLength={7}
+            placeholder="Custom hex e.g. EAA33A"
+            placeholderTextColor={colors.onSurfaceTertiary}
+            style={[styles.hexInput, { color: colors.onSurface }]}
+          />
+          <View style={[styles.hexPreview, { backgroundColor: normalizeHex(hexInput) ?? colors.surfaceTertiary, borderColor: colors.border }]} />
         </View>
 
         <View style={{ marginTop: spacing.xl }}>
@@ -233,8 +269,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  colors: { flexDirection: "row", gap: 12 },
-  swatch: { width: 40, height: 40, borderRadius: 20, borderWidth: 3 },
+  colors: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  swatch: { width: 44, height: 44, borderRadius: 22, borderWidth: 3 },
+  themeHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 16,
+    marginBottom: 10,
+  },
+  currentDot: { width: 20, height: 20, borderRadius: 10, borderWidth: 1 },
+  hexRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 14,
+    height: 48,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+  },
+  hexInput: { flex: 1, fontSize: 15, fontFamily: "Manrope" },
+  hexPreview: { width: 28, height: 28, borderRadius: 8, borderWidth: 1 },
   trackRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 8 },
   deleteBtn: {
     flexDirection: "row",

@@ -1,0 +1,30 @@
+{
+  "summary": "Frontend-only bug-fix verification for Resonance (Expo/RN web preview). Both reported bugs FIXED and verified. Bug #1: CollectionView header now renders title/subtitle/song-count as clearly readable WHITE text over a bottom dark LinearGradient scrim on the banner cover image; Play/Shuffle buttons render BELOW the banner on solid background (verified y=379 with banner ending at ~360); collection-back and playlist-edit visible at top; verified on playlist detail (Late Night Drive) and album detail (Golden Hour, subtitle 'Aurora Skies · 2021', '3 songs'). Bug #2: 12 preset color swatches (pl-color-<HEX>) render in two rows of 6 and are selectable; pl-hex-input accepts both 'EAA33A' and '#3D6B8E' formats, invalid input like 'ZZZZZZ' is ignored gracefully (no crash) with the preview dot falling back; current-color indicator dot updates; pl-save saves with 'Playlist updated'/'Playlist created' toast. Regressions passed: tapping a song row on album detail starts playback and mini-player appears globally; creating a new playlist via /playlist/edit/new with pl-name + pl-save adds it to the Playlists grid (verified 'TEST_New Playlist' appears with the chosen teal theme background).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "CollectionView shadow style", "issue": "Console deprecation warning: 'textShadow*' style props are deprecated. Use 'textShadow'. Emitted from styles.shadow in /app/frontend/src/components/CollectionView.tsx (uses textShadowColor/textShadowOffset/textShadowRadius). Non-blocking but should migrate to the unified 'textShadow' style prop for RN 0.76+."},
+      {"component": "Global shadow*/pointerEvents warnings", "issue": "Console warnings: 'shadow*' style props are deprecated. Use 'boxShadow'. and 'props.pointerEvents is deprecated. Use style.pointerEvents.' Appears somewhere in the shared component tree (not from CollectionView shadow scrim); consider a repo-wide sweep."}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_2.json"],
+  "action_items": [
+    "Optional: migrate CollectionView styles.shadow to use the new 'textShadow' style prop to silence the RN deprecation warning.",
+    "Optional: repo-wide sweep to replace legacy 'shadow*' style props with 'boxShadow' and move 'pointerEvents' prop into style.pointerEvents."
+  ],
+  "critical_code_review_comments": [
+    "CollectionView.tsx cleanly separates banner (image + scrim + white text with textShadow) from action row below, and uses numberOfLines={2}/1 to prevent overflow — good.",
+    "normalizeHex() in /app/frontend/app/playlist/edit/[id].tsx correctly accepts #RGB and #RRGGBB (with/without '#') and returns null for invalid input; only updates themeColor when hex is valid — safe against crashes.",
+    "12 swatches are hardcoded and use their hex as testID (pl-color-#XXXXXX) which matches the review request. Wrap layout (flexDirection: row + flexWrap: wrap + gap: 12) produces 2 rows of 6 at 390px width — correct."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend only)", "frontend": "100%"},
+  "seed_data_creation": "Created a playlist named 'TEST_New Playlist' via /playlist/edit/new for regression check. Main agent may leave it or clear it via Settings -> reset-library / restore-demo if it interferes with future tests.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Playlists tab has no testID on the Tabs.Screen entries in /app/frontend/app/(tabs)/_layout.tsx; use direct URL navigation to /playlists, /library, /playlist/<id>, /playlist/edit/<id|new> for reliable Playwright testing. EXPO_PUBLIC_BACKEND_URL is used (not EXPO_BACKEND_URL). App auto-seeds demo library with playlist id 'demo-playlist-1' (Late Night Drive) and albums including 'Golden Hour'.",
+  "rca_of_issue": "Not applicable — verifying prior fixes. Both fixes confirmed working via UI screenshots + bounding-box checks (Play/Shuffle at y=379, banner height ~360 => text overlay is inside banner and buttons are below it, no overlap)."
+}

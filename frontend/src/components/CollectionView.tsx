@@ -1,11 +1,11 @@
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { CaretLeft, Play, Shuffle } from "phosphor-react-native";
-import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/src/components/AppText";
-import { Artwork } from "@/src/components/Artwork";
 import { EmptyState } from "@/src/components/EmptyState";
 import { SongRow } from "@/src/components/SongRow";
 import { useSheets } from "@/src/components/SheetProvider";
@@ -47,6 +47,8 @@ export function CollectionView({
   const current = useAudioStore((s) => s.current);
   const { openTrackOptions } = useSheets();
   const [g1, g2] = gradientFor(seed);
+  const { width } = useWindowDimensions();
+  const bannerH = Math.min(Math.round(width * 0.92), 380);
 
   const play = () => {
     if (!tracks.length) return;
@@ -82,18 +84,38 @@ export function CollectionView({
         contentContainerStyle={{ paddingBottom: CONTENT_BOTTOM }}
         ListHeaderComponent={
           <View>
-            <View style={{ height: 320 }}>
-              <Artwork uri={artworkUri} seed={seed} size={320} radius={0} style={{ position: "absolute", alignSelf: "center", top: insets.top + 60 } as any} />
+            <View style={[styles.banner, { height: bannerH }]}>
+              {artworkUri ? (
+                <Image
+                  source={{ uri: artworkUri }}
+                  style={StyleSheet.absoluteFill}
+                  contentFit="cover"
+                  transition={200}
+                />
+              ) : (
+                <LinearGradient colors={[g1, g2]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+              )}
+              {/* Scrim: darker at top for controls, strong at bottom for text legibility */}
               <LinearGradient
-                colors={["transparent", "transparent", colors.surface]}
-                locations={[0, 0.55, 1]}
+                colors={["rgba(0,0,0,0.35)", "rgba(0,0,0,0)", "rgba(0,0,0,0.30)", "rgba(0,0,0,0.85)"]}
+                locations={[0, 0.28, 0.6, 1]}
                 style={StyleSheet.absoluteFill}
               />
+              <View style={[styles.bannerText, { paddingHorizontal: spacing.lg }]}>
+                <AppText variant="display" numberOfLines={2} color="#FFFFFF" style={styles.shadow}>
+                  {title}
+                </AppText>
+                {!!subtitle && (
+                  <AppText variant="subtitle" numberOfLines={1} color="rgba(255,255,255,0.92)" style={[styles.shadow, { marginTop: 4 }]}>
+                    {subtitle}
+                  </AppText>
+                )}
+                <AppText variant="caption" numberOfLines={1} color="rgba(255,255,255,0.78)" style={[styles.shadow, { marginTop: 2 }]}>
+                  {pluralize(tracks.length, "song")}
+                </AppText>
+              </View>
             </View>
-            <View style={{ paddingHorizontal: spacing.lg, marginTop: -40 }}>
-              <AppText variant="display" numberOfLines={2}>{title}</AppText>
-              <AppText variant="subtitle" muted style={{ marginTop: 4 }}>{subtitle}</AppText>
-              <AppText variant="caption" muted style={{ marginTop: 2 }}>{pluralize(tracks.length, "song")}</AppText>
+            <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
               <View style={styles.actions}>
                 <Pressable testID="collection-play" onPress={play} style={[styles.playBtn, { backgroundColor: colors.brand }]}>
                   <Play size={20} color={colors.onBrandPrimary} weight="fill" />
@@ -144,7 +166,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerRight: { position: "absolute", right: 16, zIndex: 10 },
-  actions: { flexDirection: "row", gap: 12, marginTop: 20 },
+  banner: { width: "100%", justifyContent: "flex-end", overflow: "hidden" },
+  bannerText: { position: "absolute", left: 0, right: 0, bottom: 0, paddingBottom: 18 },
+  shadow: {
+    textShadowColor: "rgba(0,0,0,0.65)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 8,
+  },
+  actions: { flexDirection: "row", gap: 12, marginTop: 4 },
   playBtn: {
     flexDirection: "row",
     alignItems: "center",
